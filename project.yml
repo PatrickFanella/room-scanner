@@ -1,0 +1,39 @@
+# Generate the Xcode project with XcodeGen: `xcodegen generate`
+name: RoomScanner
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  RoomGeometry:
+    path: Packages/RoomGeometry
+targets:
+  RoomScanner:
+    type: application
+    platform: iOS
+    sources: [App]
+    dependencies:
+      - package: RoomGeometry
+      - sdk: RoomPlan.framework
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Room Scanner
+        NSCameraUsageDescription: The camera and LiDAR sensor are used to scan rooms.
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities: [arkit]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.roomscanner
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_STRICT_CONCURRENCY: minimal
+        GENERATE_INFOPLIST_FILE: NO
