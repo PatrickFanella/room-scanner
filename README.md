@@ -47,9 +47,13 @@ xcodegen generate
 open RoomScanner.xcodeproj
 ```
 
-Select your team under Signing & Capabilities, change the bundle identifier in
-`project.yml` from `com.example.roomscanner`, and run on a LiDAR device. The
-simulator cannot scan.
+Signing is set in `project.yml`: bundle identifier `tv.subcult.roomscanner`,
+team `R5A689LLVY` (a free Personal Team). Set these there rather than in Xcode,
+because `xcodegen generate` overwrites the Xcode project. Personal Team installs
+expire after 7 days; rebuild from Xcode to renew. TestFlight and the App Store
+need a paid Apple Developer Program team, which has a different team ID.
+
+Run on a LiDAR device; the simulator cannot scan.
 
 ## Tests
 
