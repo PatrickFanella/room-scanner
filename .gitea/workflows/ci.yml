@@ -1,27 +1,58 @@
-name: "CI"
-"on":
+name: CI
+'on':
   pull_request: {}
   push:
     branches:
-      - "main"
+    - main
 permissions:
-  contents: "read"
+  contents: read
 jobs:
   verify:
-    name: "Geometry tests"
-    runs-on: "ubuntu-latest"
+    name: Geometry tests
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      -
-        uses: "actions/checkout@v6"
-      -
-        name: "Run existing Swift package tests"
-        shell: "bash"
-        run: |-
-          mkdir -p "$DXF_SAMPLE_DIR"
-          swift test --scratch-path "$RUNNER_TEMP/room-geometry-build-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}"
-        working-directory: "Packages/RoomGeometry"
-        env:
-          DXF_SAMPLE_DIR: "${{ runner.temp }}/room-dxf-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}"
+    - name: Install verified checkout runtime in Swift container
+      shell: bash
+      run: 'set -euo pipefail
+
+        apt-get update
+
+        apt-get install -y --no-install-recommends curl ca-certificates xz-utils git
+
+        test "$(uname -m)" = x86_64
+
+        archive="$RUNNER_TEMP/node-v24.22.1-linux-x64.tar.xz"
+
+        curl --fail --location --silent --show-error https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.xz
+        --output "$archive"
+
+        printf ''%s  %s\n'' 6c172a9ab6718f7b801fb5a7bd486af2ee5e32758086a04b84fcce2aa77095e6 "$archive" | sha256sum
+        --check -
+
+        mkdir -p /opt/ci-node
+
+        tar -xJf "$archive" -C /opt/ci-node --strip-components=1
+
+        ln -s /opt/ci-node/bin/node /usr/local/bin/node
+
+        node --version
+
+        git --version
+
+        rm "$archive"
+
+        '
+    - uses: actions/checkout@v6
+    - name: Run existing Swift package tests
+      shell: bash
+      run: 'mkdir -p "$DXF_SAMPLE_DIR"
+
+        swift test --scratch-path "$RUNNER_TEMP/room-geometry-build-${{ github.run_id }}-${{ github.run_attempt
+        }}-${{ github.job }}"'
+      working-directory: Packages/RoomGeometry
+      env:
+        DXF_SAMPLE_DIR: ${{ runner.temp }}/room-dxf-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job
+          }}
     container:
-      image: "swift:6.1-noble"
+      image: swift:6.1-noble
