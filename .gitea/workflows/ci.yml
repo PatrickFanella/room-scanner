@@ -1,0 +1,27 @@
+name: "CI"
+"on":
+  pull_request: {}
+  push:
+    branches:
+      - "main"
+permissions:
+  contents: "read"
+jobs:
+  verify:
+    name: "Geometry tests"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 20
+    steps:
+      -
+        uses: "actions/checkout@v6"
+      -
+        name: "Run existing Swift package tests"
+        shell: "bash"
+        run: |-
+          mkdir -p "$DXF_SAMPLE_DIR"
+          swift test --scratch-path "$RUNNER_TEMP/room-geometry-build-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}"
+        working-directory: "Packages/RoomGeometry"
+        env:
+          DXF_SAMPLE_DIR: "${{ runner.temp }}/room-dxf-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}"
+    container:
+      image: "swift:6.1-noble"
