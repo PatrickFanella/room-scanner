@@ -1,0 +1,49 @@
+name: PR CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  geometry-tests:
+    name: Geometry tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: swift:6.1-noble
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run existing Swift package tests
+        working-directory: Packages/RoomGeometry
+        env:
+          DXF_SAMPLE_DIR: ${{ runner.temp }}/room-dxf
+        run: |
+          mkdir -p "$DXF_SAMPLE_DIR"
+          swift test --scratch-path "$RUNNER_TEMP/room-geometry-build"
+
+  ci-gate:
+    name: CI gate
+    if: always()
+    needs: [geometry-tests]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every verification job
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          results = json.loads(os.environ["RESULTS"])
+          expected = {'geometry-tests'}
+          assert set(results) == expected, results
+          for name, result in results.items():
+              assert result["result"] == "success", name + " did not pass"
+          PY
